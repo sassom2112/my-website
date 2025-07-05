@@ -1,0 +1,212 @@
+---
+// src/components/Arsenal.astro
+const projects = [
+    {
+        title: "DIY BadUSB with Pi Pico",
+        category: "Hardware",
+        description: "A low-cost keystroke injection tool using CircuitPython.",
+        tags: ["Hardware", "Python", "Offensive Tool"],
+        github: "https://github.com/your-username/your-repo" // <-- UPDATE YOUR LINKS
+    },
+    {
+        title: "Network Port Scanner",
+        category: "Software",
+        description: "A multi-threaded port scanner built in Python.",
+        tags: ["Software", "Python", "Networking"],
+        github: "https://github.com/sassom2112/shiny-octo-happiness"
+    },
+    {
+        title: "Password Cracker",
+        category: "Software",
+        description: "Dictionary attacks to crack passwords hashed with legacy Unix crypt and more secure SHA512.",
+        tags: ["Software", "Python", "Security"],
+        github: "https://github.com/sassom2112/ideal-rotary-phone?tab=readme-ov-file"
+    },
+    {
+        title: "MNIST Handwritten Digit Recognition App",
+        category: "ML",
+        description: "This app is a simple yet powerful demonstration of using a Convolutional Neural Network (CNN) to recognize handwritten digits (0-9).",
+        tags: ["ML", "Python", "PyTorch", "Flask"],
+        github: "https://github.com/your-username/your-repo"
+    },
+    {
+        title: "EDA of UNSW-NB15",
+        category: "WebApp",
+        description: "Exploratory Data Analysis and preprocessing of the UNSW-NB15 dataset for intrusion detection.",
+        tags: ["ML", "Python", "Data"],
+        github: "https://github.com/your-username/your-repo"
+    }
+];
+---
+
+<style>
+    /* --- Filter Buttons --- */
+    .filter-buttons { margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .filter-btn {
+        background: var(--card-background);
+        border: 1px solid var(--border-color);
+        color: var(--text-light);
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        border-radius: 5px;
+        font-family: var(--font-mono);
+        transition: all 0.2s ease-in-out; /* Smoother transition */
+    }
+    .filter-btn:hover {
+        background-color: #3a3a3a;
+        border-color: var(--accent-color);
+    }
+    .filter-btn.active {
+        background: var(--accent-color);
+        color: var(--background-dark);
+        font-weight: bold;
+    }
+
+    /* --- Project Grid --- */
+    .project-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+
+    /* --- Project Card Base Style --- */
+    .project-card {
+        background: var(--card-background);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        display: flex; /* We use flexbox to structure the card content */
+        flex-direction: column;
+        opacity: 1;
+        transform: scale(1);
+        transition: all 0.3s ease-in-out; /* This animates hover AND filtering */
+    }
+
+    /* --- Card Hidden State for Filtering --- */
+    .project-card.hidden {
+        opacity: 0;
+        transform: scale(0.95);
+        pointer-events: none; /* Prevents interaction when hidden */
+        /* We set a very small height to allow the grid to animate resizing */
+        max-height: 0;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    /* --- Prettified Hover Effect --- */
+    .project-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-color);
+        /* The glow effect using the --accent-rgb variable we added */
+        box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.4);
+    }
+
+    /* --- Card Content Styling --- */
+    .project-card h3 {
+        color: var(--text-light);
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem; /* More spacing */
+    }
+    .project-card p {
+        flex-grow: 1; /* This makes the description take up available space, pushing the tags/link down */
+        color: #bbb;
+        line-height: 1.6;
+    }
+
+    /* --- Tag Styling --- */
+    .project-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+    .tag {
+        background: #333;
+        color: #ccc;
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-family: var(--font-mono);
+        border: 1px solid #444;
+    }
+
+    /* --- GitHub Link Styling --- */
+    .github-link {
+        display: inline-flex; /* Use flex to align icon and text */
+        align-items: center;
+        gap: 0.5rem; /* Space between icon and text */
+        margin-top: 1.5rem;
+        padding: 0.6rem 1rem;
+        background-color: var(--accent-color);
+        color: var(--background-dark);
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+        align-self: flex-start; /* Makes the button only as wide as its content */
+        transition: background-color 0.2s ease;
+    }
+    .github-link:hover {
+        background-color: #fff;
+        text-decoration: none;
+    }
+</style>
+
+<section id="arsenal">
+    <h2>My Arsenal</h2>
+    <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="Hardware">Hardware</button>
+        <button class="filter-btn" data-filter="Software">Software</button>
+        <button class="filter-btn" data-filter="ML">ML</button>
+        <button class="filter-btn" data-filter="WebApp">WebApp</button>
+    </div>
+    <div class="project-grid">
+        {projects.map(p => (
+            <div class="project-card" data-category={p.category}>
+                <h3>{p.title}</h3>
+                <p>{p.description}</p>
+                <div class="project-tags">
+                    {p.tags.map(tag => <span class="tag">{tag}</span>)}
+                </div>
+                <a href={p.github} class="github-link" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-github"></i> <!-- The GitHub Icon -->
+                    View on GitHub
+                </a>
+            </div>
+        ))}
+    </div>
+</section>
+
+<script>
+    // Note: We're talking directly to the browser, so this is plain JavaScript/TypeScript.
+
+    // Select all the buttons and cards from the document
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const projectCards = document.querySelectorAll('.project-card');
+
+    // Add a click listener to each filter button
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // --- FIX FOR 'Object is possibly null' ---
+            // First, find the button that is currently active.
+            const activeButton = document.querySelector('.filter-btn.active');
+            // Then, only if it exists, remove the active class.
+            if (activeButton) {
+                activeButton.classList.remove('active');
+            }
+            // Add the active class to the button that was just clicked.
+            button.classList.add('active');
+
+
+            // --- FIX FOR 'Property 'dataset' does not exist' ---
+            // We cast 'button' to an HTMLElement to access its 'dataset' property.
+            const buttonEl = button as HTMLElement;
+            const filter = buttonEl.dataset.filter;
+
+            // Loop through all the project cards to show or hide them
+            projectCards.forEach(card => {
+                // We do the same casting for 'card'.
+                const cardEl = card as HTMLElement;
+                const category = cardEl.dataset.category;
+
+                if (filter === 'all' || filter === category) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        });
+    });
+</script>

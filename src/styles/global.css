@@ -1,0 +1,50 @@
+/* src/styles/global.css */
+
+/* Import Fonts from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Roboto:wght@400;700&display=swap');
+
+:root {
+  --background-dark: #1a1a1a;
+  --text-light: #e0e0e0;
+  --accent-color: #00aaff; /* Electric Blue - change to red or green if you prefer */
+  --card-background: #252525;
+  --border-color: #333333;
+
+  --font-body: 'Roboto', sans-serif;
+  --font-mono: 'Fira Code', monospace;
+}
+
+html {
+  font-family: var(--font-body);
+  background-color: var(--background-dark);
+  color: var(--text-light);
+  scroll-behavior: smooth; /* For smooth scrolling from the nav bar */
+}
+
+body {
+  margin: 0;
+  padding: 0 2rem;
+  max-width: 80ch;
+  margin: auto;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-mono);
+  color: var(--accent-color);
+  margin: 0;
+}
+
+h1 { font-size: 3rem; }
+h2 { font-size: 2rem; margin-top: 3rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.fit-pic {
+  width: 100px;
+}

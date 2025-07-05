@@ -1,0 +1,200 @@
+---
+// src/components/Journey.astro
+const journeyData = [
+    {
+        date: "2019",
+        title: "The Spark: First Lines of Python",
+        description: "My journey began with a foundational Python course",
+        icon: "fa-solid fa-code"
+    },
+    {
+        date: "2021",
+        title: "The Mentor: Discovering Hardware",
+        description: "A mentor introduced me to microcontrollers and the world of hardware hacking.",
+        icon: "fa-solid fa-microchip"
+    },
+    {
+        date: "2022",
+        title: "TryHackMe",
+        description: "Began learning offensive security",
+        icon: "fa-solid fa-lock-open"
+    },
+    {
+        date: "2025",
+        title: "The Defender's Perspective",
+        description: "As an IT Engineer, I gained a unique 'blue team' advantage in understanding defensive postures and their blind spots.",
+        icon: "fa-solid fa-shield-halved"
+    },
+    {
+        date: "2025 - Present",
+        title: "Leveling Up: SANS Training",
+        description: "Currently sharpening my offensive skills with SANS SEC495 and ICS310 to master the craft of ethical hacking.",
+        icon: "fa-solid fa-graduation-cap"
+    }
+];
+---
+
+<style>
+    /* --- NEW: Define our keyframe animations --- */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popIn {
+        from { opacity: 0; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes subtleGlow {
+        0% { box-shadow: 0 0 15px rgba(var(--accent-rgb), 0); }
+        50% { box-shadow: 0 0 25px rgba(var(--accent-rgb), 0.3); }
+        100% { box-shadow: 0 0 15px rgba(var(--accent-rgb), 0); }
+    }
+
+
+    .storyboard-container {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--card-background);
+    }
+
+    .storyboard-track {
+        display: flex;
+        /* UPGRADE: A much smoother, professional easing function for the slide */
+        transition: transform 0.6s cubic-bezier(0.86, 0, 0.07, 1);
+    }
+
+    .storyboard-panel {
+        width: 100%;
+        flex-shrink: 0;
+        padding: 2rem 3rem;
+        box-sizing: border-box;
+        text-align: center;
+        transition: box-shadow 0.3s ease; /* Smooth transition for the glow */
+    }
+
+    /* UPGRADE: The active panel gets the glow animation */
+    .storyboard-panel.is-active {
+        animation: subtleGlow 4s infinite ease-in-out;
+    }
+
+    /* --- Content elements are now invisible by default --- */
+    /* They will become visible only when the panel is active */
+    .panel-icon, .panel-date, .panel-title, .panel-description {
+        opacity: 0;
+    }
+
+    /* UPGRADE: Animate content when the 'is-active' class is added */
+    .storyboard-panel.is-active .panel-icon {
+        animation: popIn 0.5s forwards;
+        animation-delay: 0.3s; /* Staggered start time */
+    }
+    .storyboard-panel.is-active .panel-date {
+        animation: fadeInUp 0.5s forwards;
+        animation-delay: 0.4s;
+    }
+    .storyboard-panel.is-active .panel-title {
+        animation: fadeInUp 0.5s forwards;
+        animation-delay: 0.5s;
+    }
+    .storyboard-panel.is-active .panel-description {
+        animation: fadeInUp 0.5s forwards;
+        animation-delay: 0.6s;
+    }
+
+
+    /* --- Styling for the content (mostly unchanged) --- */
+    .panel-icon { font-size: 2.5rem; color: var(--accent-color); margin-bottom: 1rem; }
+    .panel-date { font-family: var(--font-mono); color: #999; margin-bottom: 0.5rem; }
+    .panel-title { font-size: 1.75rem; color: var(--text-light); margin-bottom: 1rem; }
+    .panel-description { color: #bbb; max-width: 60ch; margin: auto; }
+
+
+    /* --- Navigation Buttons (unchanged) --- */
+    .nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: rgba(40, 40, 40, 0.7);
+        color: var(--text-light);
+        border: 1px solid var(--border-color);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.9s ease-in-out;
+    }
+    .nav-btn:hover { background-color: var(--accent-color); color: var(--background-dark); }
+    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .prev-btn { left: 1rem; }
+    .next-btn { right: 1rem; }
+</style>
+
+<section id="journey">
+    <h2>My Journey</h2>
+    <div class="storyboard-container">
+        <button id="prev-btn" class="nav-btn prev-btn"><i class="fa-solid fa-chevron-left"></i></button>
+        <button id="next-btn" class="nav-btn next-btn"><i class="fa-solid fa-chevron-right"></i></button>
+        <div id="storyboard-track" class="storyboard-track">
+            {journeyData.map(item => (
+                <div class="storyboard-panel">
+                    <div class="panel-icon"><i class={item.icon}></i></div>
+                    <div class="panel-date">{item.date}</div>
+                    <h3 class="panel-title">{item.title}</h3>
+                    <p class="panel-description">{item.description}</p>
+                </div>
+            ))}
+        </div>
+    </div>
+</section>
+
+<!-- SCRIPT IS UPGRADED TO CONTROL THE 'is-active' CLASS -->
+<script>
+    const track = document.getElementById('storyboard-track') as HTMLElement;
+    const panels = document.querySelectorAll('.storyboard-panel');
+    const prevBtn = document.getElementById('prev-btn') as HTMLButtonElement;
+    const nextBtn = document.getElementById('next-btn') as HTMLButtonElement;
+
+    let currentIndex = 0;
+    const panelCount = panels.length;
+
+    function updateStoryboard() {
+        // Move the track horizontally
+        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+
+        // UPGRADE: Manage the 'is-active' class for animations
+        panels.forEach((panel, index) => {
+            if (index === currentIndex) {
+                panel.classList.add('is-active');
+            } else {
+                panel.classList.remove('is-active');
+            }
+        });
+
+        // Disable/Enable buttons
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === panelCount - 1;
+    }
+
+    // Event listeners are unchanged
+    prevBtn.addEventListener('click', () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateStoryboard();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentIndex < panelCount - 1) {
+            currentIndex++;
+            updateStoryboard();
+        }
+    });
+
+    // Initialize the storyboard on page load
+    updateStoryboard();
+</script>

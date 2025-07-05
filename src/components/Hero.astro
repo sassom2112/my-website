@@ -1,0 +1,58 @@
+---
+// src/components/Hero.astro
+---
+<style>
+  .hero {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .subheadline {
+    font-size: 1.2rem;
+    color: var(--text-light);
+    margin-top: 1rem;
+    max-width: 60ch;
+  }
+  .cta-buttons {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+  }
+  .cta-button {
+    background-color: var(--accent-color);
+    color: var(--background-dark);
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    font-weight: bold;
+    font-family: var(--font-mono);
+    border: 2px solid var(--accent-color);
+    transition: all 0.2s ease-in-out;
+  }
+  .cta-button.secondary {
+    background-color: transparent;
+    color: var(--accent-color);
+  }
+  .cta-button:hover {
+    transform: translateY(-3px);
+  }
+</style>
+
+<section class="hero" id="home">
+  <h1>Mike Sasso</h1>
+  <h2>IT Engineer & Aspiring Red Teamer</h2>
+  <p class="subheadline">
+    Specializing in hardware hacking and custom tool development to challenge digital and physical defenses.
+  </p>
+  <img
+    class="fit-pic"
+    src="./public/certified-in-cybersecurity-cc.png" alt="Certified in Cybersecurity Certification">
+
+
+  <div class="cta-buttons">
+    <a href="#arsenal" class="cta-button">View My Arsenal</a>
+    <a href="#journey" class="cta-button secondary">Follow My Journey</a>
+  </div>
+</section>
