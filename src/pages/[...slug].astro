@@ -1,0 +1,109 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+// Import the Layout component with a specific name for clarity
+import WriteupLayout from '../layouts/Layout.astro';
+
+// TypeScript type to ensure entry data is correct
+type WriteupEntry = CollectionEntry<'writeups'>;
+
+// 1. getStaticPaths: Generates a page for every entry in the 'writeups' collection
+export async function getStaticPaths() {
+    const writeups = await getCollection('writeups');
+    
+    return writeups.map(entry => ({
+        // FIX: Ensure the generated slug parameter is explicitly converted to lowercase 
+        // to match the clean URL requested by the browser.
+        params: { slug: entry.slug.toLowerCase() },
+        props: { entry },
+    }));
+}
+
+// 2. Extract the entry and render the Markdown content body
+const { entry } = Astro.props as { entry: WriteupEntry };
+const { Content } = await entry.render();
+---
+
+<WriteupLayout title={entry.data.title}>
+    <article class="writeup-article">
+        <header>
+            <h1>{entry.data.title}</h1>
+            <p class="description">{entry.data.description}</p>
+            <div class="meta">
+                {entry.data.author && <p>By {entry.data.author}</p>}
+                {entry.data.date && <p>Published on {new Date(entry.data.date).toLocaleDateString()}</p>}
+                {/* Add an image if it exists */}
+                {entry.data.heroImage && <img src={entry.data.heroImage} alt={entry.data.title + ' Hero Image'} />}
+            </div>
+            <div class="tags">
+                {entry.data.tags.map(tag => <span class="tag">{tag}</span>)}
+            </div>
+        </header>
+        <div class="content">
+            <Content />
+        </div>
+    </article>
+</WriteupLayout>
+
+<style>
+.writeup-article {
+    max-width: 800px;
+    margin: 4rem auto;
+    padding: 0 1rem;
+}
+.writeup-article header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+}
+.writeup-article h1 {
+    font-size: 2.5rem;
+    color: var(--accent-color);
+    margin-bottom: 0.5rem;
+}
+.writeup-article .description {
+    color: #bbb;
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+.writeup-article .meta p {
+    color: #999;
+    font-size: 0.9rem;
+    margin: 0;
+}
+.writeup-article img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+.writeup-article .tags {
+    margin-top: 1rem;
+}
+.writeup-article .tags .tag {
+    /* Re-use the .tag styles defined in index.astro */
+    display: inline-block;
+    background: #333;
+    color: #ccc;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    border: 1px solid #444;
+    margin-right: 0.5rem;
+}
+
+/* Styling the injected Markdown content requires the :global selector */
+.writeup-article .content :global(p) {
+    line-height: 1.7;
+    margin-bottom: 1em;
+}
+.writeup-article .content :global(h2) {
+    color: var(--text-light);
+    border-bottom: 1px dashed #444;
+    padding-bottom: 0.3em;
+    margin-top: 2em;
+    margin-bottom: 1em;
+}
+/* ... add more styles for lists, code blocks, etc. as needed ... */
+</style>

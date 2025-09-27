@@ -1,0 +1,255 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+// 1. Fetch all entries from the 'writeups' collection
+const allWriteups = await getCollection('writeups');
+
+// 2. Define the TypeScript type for a single writeup
+type WriteupEntry = CollectionEntry<'writeups'>;
+
+// 3. Extract all unique categories/tags for filter buttons
+// FIX: Using .flatMap(w => w.data.tags ?? []).filter(Boolean) as string[] 
+// ensures allTags is treated as an array of strings, fixing the 'string | undefined' error.
+const allTags = allWriteups.flatMap(w => w.data.tags ?? []).filter(Boolean) as string[];
+
+// 4. Extract unique tags and sort them.
+const uniqueTags = [...new Set(allTags)].sort();
+
+// 5. Optional: Sort writeups by date (uncomment if you add a 'date' field to your frontmatter)
+// const sortedWriteups = allWriteups.sort((a, b) => {
+//     const dateA = new Date(b.data.date || 0).getTime();
+//     const dateB = new Date(a.data.date || 0).getTime();
+//     return dateB - dateA; // Use B-A for descending (newest first)
+// });
+---
+
+<Layout title="My Technical Writeups">
+  <section id="writeups" class="writeups-section">
+    <h1 class="writeups-headline">Technical Writeups</h1>
+    <p class="writeups-subheadline">Here you'll find detailed analyses, tutorials, and insights into various cybersecurity topics and projects.</p>
+
+    <div class="filter-buttons">
+      <button class="filter-btn active" data-filter="all">All</button>
+      {uniqueTags.map(tag => (
+        <button class="filter-btn" data-filter={tag}>
+          {tag}
+        </button>
+      ))}
+    </div>
+    
+<div class="writeup-grid">
+          {allWriteups.map((writeup: WriteupEntry) => (
+            <a 
+              href={`/writeups/${writeup.slug.toLowerCase()}`} 
+              class="writeup-card" 
+              data-tags={(writeup.data.tags ?? []).join(',')}
+            > {/* <--- ADDED CLOSING ANCHOR TAG SYMBOL HERE */}
+              <h2 class="writeup-title">{writeup.data.title}</h2>
+              <p class="writeup-description">{writeup.data.description}</p>
+              <div class="writeup-tags">
+                {/* You also need to protect the inner map if tags might be missing */}
+                {writeup.data.tags && writeup.data.tags.map((tag: string) => (
+                  <span class="tag">{tag}</span>
+                ))}
+              </div>
+              <div class="read-more">Read More <i class="fa-solid fa-arrow-right"></i></div>
+            </a>
+          ))}
+    </div>
+  </section>
+</Layout>
+
+<style>
+/* ---------------------------------- */
+/* ----------- Base Layout ---------- */
+/* ---------------------------------- */
+
+.writeups-section {
+    padding: 4rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.writeups-headline {
+    font-size: 3rem;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.writeups-subheadline {
+    font-size: 1.1rem;
+    color: #bbb;
+    text-align: center;
+    margin-bottom: 3rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+}
+
+.writeup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+/* ---------------------------------- */
+/* ----------- Filter Buttons ------- */
+/* ---------------------------------- */
+
+.filter-buttons { 
+    margin-bottom: 2rem; 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 0.5rem; 
+    justify-content: center; /* Center the buttons */
+}
+.filter-btn {
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    font-family: var(--font-mono);
+    transition: all 0.2s ease-in-out;
+}
+.filter-btn:hover {
+    background-color: #3a3a3a;
+    border-color: var(--accent-color);
+}
+.filter-btn.active {
+    background: var(--accent-color);
+    color: var(--background-dark);
+    font-weight: bold;
+}
+
+/* ---------------------------------- */
+/* ----------- Writeup Card --------- */
+/* ---------------------------------- */
+
+.writeup-card {
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none; /* Remove underline from link */
+    color: inherit; /* Inherit color for text inside link */
+    transition: all 0.3s ease-in-out;
+}
+
+.writeup-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent-color);
+    /* Ensure you have --accent-rgb defined in your global CSS */
+    box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.4); 
+}
+
+/* Card Content */
+.writeup-title {
+    font-size: 1.5rem;
+    color: var(--text-light);
+    margin-bottom: 0.75rem;
+}
+
+.writeup-description {
+    flex-grow: 1; /* Pushes the tags and read-more down */
+    color: #bbb;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.writeup-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: auto; /* Push tags to the bottom */
+}
+
+/* Tags Style */
+.tag {
+    background: #333;
+    color: #ccc;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    border: 1px solid #444;
+}
+
+/* Read More Link */
+.read-more {
+    margin-top: 1rem;
+    color: var(--accent-color);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.read-more i {
+    transition: transform 0.2s ease;
+}
+
+.writeup-card:hover .read-more i {
+    transform: translateX(5px);
+}
+
+/* --- Card Hidden State for Filtering --- */
+.writeup-card.hidden {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+    max-height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+</style>
+
+<script>
+  // Add filtering logic to the page
+  document.addEventListener('astro:page-load', () => {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const writeupCards = document.querySelectorAll('.writeup-card');
+
+    filterButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // 1. Handle Active Button State
+        const activeButton = document.querySelector('.filter-btn.active');
+        if (activeButton) {
+          activeButton.classList.remove('active');
+        }
+        button.classList.add('active');
+
+        // 2. Get Filter Value and ensure it's a string
+        // FIX: The Nullish Coalescing Operator (??) handles the 'string | undefined' error.
+        const filter = (button as HTMLElement).dataset.filter ?? "";
+
+        // 3. Loop Through Cards to Filter
+        writeupCards.forEach(card => {
+          const cardEl = card as HTMLElement;
+          // Get the comma-separated string of tags from the data attribute
+          const tags = cardEl.dataset.tags || "";
+
+          // The 'filter' variable is now guaranteed to be a string (or an empty string)
+          if (filter === 'all' || tags.includes(filter)) {
+            card.classList.remove('hidden');
+            // Restore styles for visibility (needed due to the collapsing effect when hidden)
+            cardEl.style.padding = '1.5rem'; 
+            cardEl.style.maxHeight = 'unset'; 
+          } else {
+            card.classList.add('hidden');
+            // Apply collapsing effect for hidden cards
+            cardEl.style.padding = '0'; 
+            cardEl.style.maxHeight = '0';
+          }
+        });
+      });
+    });
+  });
+</script>

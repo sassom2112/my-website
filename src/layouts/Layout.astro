@@ -1,15 +1,100 @@
 ---
-import '../styles/global.css';
-const { title } = Astro.props;
+interface Props {
+	title: string;
+	description?: string; // Make description optional
+}
+
+const { title, description = "Default description for your site." } = Astro.props;
 ---
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>{title}</title>
-       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  </head>
-  <body>
-    <slot />
-  </body>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		{description && <meta name="description" content={description} />}
+		<!-- Add Font Awesome -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	</head>
+	<body>
+		<slot />
+	</body>
 </html>
+<style is:global>
+  /* Your global styles here */
+  :root {
+    --background-dark: #1a1a1a;
+    --card-background: #252525;
+    --border-color: #3a3a3a;
+    --text-light: #f0f0f0;
+    --text-dark: #333;
+    --accent-color: #00bcd4; /* A vibrant teal */
+    --accent-rgb: 0, 188, 212; /* RGB for the accent color, for box-shadows */
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'Fira Code', monospace; /* A nice monospace font */
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--background-dark);
+    color: var(--text-light);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    color: var(--text-light);
+    line-height: 1.2;
+  }
+
+  a {
+    color: var(--accent-color);
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  section {
+    padding: 6rem 1rem;
+  }
+
+  /* Global utility classes or common element styles */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .fit-pic {
+    max-width: 250px; /* Adjust as needed */
+    height: auto;
+    margin: 10px;
+  }
+
+  /* Add some basic code styling */
+  code {
+    font-family: var(--font-mono);
+    background-color: rgba(var(--accent-rgb), 0.1);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    color: var(--accent-color);
+  }
+
+  pre {
+    background-color: #282c34;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    color: #a9b7c6;
+  }
+</style>
