@@ -1,27 +1,20 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import Layout from '../../layouts/Layout.astro'; // <--- This refers to your main site layout
 import { getCollection, type CollectionEntry } from 'astro:content';
 
-// 1. Fetch all entries from the 'writeups' collection
 const allWriteups = await getCollection('writeups');
-
-// 2. Define the TypeScript type for a single writeup
 type WriteupEntry = CollectionEntry<'writeups'>;
 
-// 3. Extract all unique categories/tags for filter buttons
-// FIX: Using .flatMap(w => w.data.tags ?? []).filter(Boolean) as string[] 
-// ensures allTags is treated as an array of strings, fixing the 'string | undefined' error.
 const allTags = allWriteups.flatMap(w => w.data.tags ?? []).filter(Boolean) as string[];
-
-// 4. Extract unique tags and sort them.
 const uniqueTags = [...new Set(allTags)].sort();
 
-// 5. Optional: Sort writeups by date (uncomment if you add a 'date' field to your frontmatter)
-// const sortedWriteups = allWriteups.sort((a, b) => {
-//     const dateA = new Date(b.data.date || 0).getTime();
-//     const dateB = new Date(a.data.date || 0).getTime();
-//     return dateB - dateA; // Use B-A for descending (newest first)
-// });
+// Optional: Sort writeups by date (uncomment if you add a 'date' field to your frontmatter)
+const sortedWriteups = allWriteups.sort((a, b) => {
+    // Ensure date exists and is a Date object (if using schema transform)
+    const dateA = a.data.date instanceof Date ? a.data.date : new Date(a.data.date || '1970-01-01'); // Provide a default if date is missing
+    const dateB = b.data.date instanceof Date ? b.data.date : new Date(b.data.date || '1970-01-01');
+    return dateB.getTime() - dateA.getTime(); // Newest first
+});
 ---
 
 <Layout title="My Technical Writeups">
@@ -38,25 +31,28 @@ const uniqueTags = [...new Set(allTags)].sort();
       ))}
     </div>
     
-<div class="writeup-grid">
-          {allWriteups.map((writeup: WriteupEntry) => (
-            <a 
-              href={`/writeups/${writeup.slug.toLowerCase()}`} 
-              class="writeup-card" 
-              data-tags={(writeup.data.tags ?? []).join(',')}
-            > {/* <--- ADDED CLOSING ANCHOR TAG SYMBOL HERE */}
-              <h2 class="writeup-title">{writeup.data.title}</h2>
-              <p class="writeup-description">{writeup.data.description}</p>
-              <div class="writeup-tags">
-                {/* You also need to protect the inner map if tags might be missing */}
-                {writeup.data.tags && writeup.data.tags.map((tag: string) => (
-                  <span class="tag">{tag}</span>
-                ))}
-              </div>
-              <div class="read-more">Read More <i class="fa-solid fa-arrow-right"></i></div>
-            </a>
-          ))}
-    </div>
+    <div class="writeup-grid">
+      {sortedWriteups.map((writeup: WriteupEntry) => ( // <--- Use sortedWriteups here
+        <a 
+          href={`/writeups/${writeup.slug}`} 
+          class="writeup-card" 
+          data-tags={(writeup.data.tags ?? []).join(',')}
+        >
+          {/* If you want to display the heroImage on the card */}
+          {writeup.data.heroImage && (
+            <img src={writeup.data.heroImage} alt={writeup.data.title + ' preview'} class="card-hero-image" />
+          )}
+          <h2 class="writeup-title">{writeup.data.title}</h2>
+          <p class="writeup-description">{writeup.data.description}</p>
+          <div class="writeup-tags">
+            {writeup.data.tags && writeup.data.tags.map((tag: string) => (
+              <span class="tag">{tag}</span>
+            ))}
+          </div>
+          <div class="read-more">Read More <i class="fa-solid fa-arrow-right"></i></div>
+        </a>
+      ))}
+    </div>
   </section>
 </Layout>
 
@@ -150,6 +146,14 @@ const uniqueTags = [...new Set(allTags)].sort();
 }
 
 /* Card Content */
+.writeup-card .card-hero-image {
+  width: 100%;
+  height: 200px; /* Or a fixed aspect ratio */
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
 .writeup-title {
     font-size: 1.5rem;
     color: var(--text-light);
@@ -227,24 +231,19 @@ const uniqueTags = [...new Set(allTags)].sort();
         button.classList.add('active');
 
         // 2. Get Filter Value and ensure it's a string
-        // FIX: The Nullish Coalescing Operator (??) handles the 'string | undefined' error.
         const filter = (button as HTMLElement).dataset.filter ?? "";
 
         // 3. Loop Through Cards to Filter
         writeupCards.forEach(card => {
           const cardEl = card as HTMLElement;
-          // Get the comma-separated string of tags from the data attribute
           const tags = cardEl.dataset.tags || "";
 
-          // The 'filter' variable is now guaranteed to be a string (or an empty string)
           if (filter === 'all' || tags.includes(filter)) {
             card.classList.remove('hidden');
-            // Restore styles for visibility (needed due to the collapsing effect when hidden)
             cardEl.style.padding = '1.5rem'; 
             cardEl.style.maxHeight = 'unset'; 
           } else {
             card.classList.add('hidden');
-            // Apply collapsing effect for hidden cards
             cardEl.style.padding = '0'; 
             cardEl.style.maxHeight = '0';
           }
