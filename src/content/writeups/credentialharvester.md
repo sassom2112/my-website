@@ -10,20 +10,15 @@ heroImage: "/images/credential_harvester_hero.webp"
 # Unmasking a Dual-Stage Credential Harvester Operating via RMM Tools
 
 <p align="center">
-    **DISCLAIMER**
+    *** DISCLAIMER ***
 </p>
 
-> Please note that I am **not a professional DFIR analyst or Incident Responder**. This writeup is strictly part of a personal educational journey and, as such, may contain significant errors. This site is a personal project (built with JS, Astro, CSS, and HTML) and is not part of any professional platform.
+> I'm not a professional; this is strictly educational and may be incorrect
 
-## So I had a fun week…
-
-Also, this is why you don’t give clients local administration rights… smh.
 
 ## A Curious Anomaly
 
-When responding to an incident, we learn to trust our tools. My process began not with a siren-blaring alert, but with a curious, repetitive anomaly flagged deep within a client's system logs: **Windows Event ID 4610**. This event signaled the successful loading of an Authentication Package by the Local Security Authority (LSA); the security heart of Windows.
-
-Crucially, the DLL being loaded wasn't the expected `msv1_0.DLL`; it was a third-party file: **ScreenConnect.WindowsAuthenticationPackage.dll**. I thought to myself, "We do not have this tool. Why is ScreenConnect even on our clients computer?"
+My process began with a curious, repetitive anomaly that I found on a Security logs,  **Windows Event ID 4610** - An Authentication packege has been loaded by the Local Security Authority. This event was a level `informational` not even an alert, I almost ingoned it. There was something off about the alert, it had a ScreenConnect DLL being loaded into a privledged area and none of our tools used ScreenConnect. The DLL being loaded was **ScreenConnect.WindowsAuthenticationPackage.dll**, and I had no idea why.
 
 <img 
     src="/screenconnectdll.png" 
@@ -31,15 +26,15 @@ Crucially, the DLL being loaded wasn't the expected `msv1_0.DLL`; it was a third
     style="max-width: 70%; height: auto; display: block; margin: 2em auto; border-radius: 8px; border: 1px solid #444;" 
 />
 
-> **CRITICAL INSIGHT:** This finding was the **linchpin** of the entire investigation. While **ScreenConnect** is a legitimate Remote Monitoring and Management (**RMM**) tool, it was not one of our tools. So, while a non-Microsoft DLL gaining access to the **LSA** process isn't an alarm by itself, this specific discovery was the **catalyst** for my hypothesis: that something else entirely was at play. 🔥
+> **INSIGHT:** While ScreenConnect is a legit RMM tool, and the use of a custom LSA Authentication Package (ScreenConnect.WindowsAuthenticationPackage.dll) is normal for the application, its presence on a client system that does not authorize or utilize ScreenConnect is a critical security anomaly. This discovery was the catalyst for my hypothesis: I am investigating an instance of unauthorized, high-privileged that leverages legitimate Remote Access Tool component. My next step is to validate this claim by investigating the source and context of the ScreenConnect installation.
 
 ## Initial Access and Deployment Methods
 
-My first step was to trace the initial compromise. The evidence pointed immediately to a clever social engineering tactic paired with a trojanized installer.
+Ok, so I started in the middle, where was the initial compromise. We will say for berevity that the initial compromise was a `social engineering` tactic paired and a `trojanized installer`.
 
 ### The Initial Access Vector (TA0001)
 
-File system analysis revealed the malicious execution began with a trojanized Windows Installer file, cleverly disguised as a legitimate application: `Adobe_Reader_V400A18420.msi` that housed the Syncro RMM.
+Once we found the installer file a clearer pictures ensued, this trogan was cleverly disguised as a legitimate application: `Adobe_Reader_V400A18420.msi` that housed out first RMM, Syncro.
 
 <img 
     src="/syncro.png" 
@@ -47,7 +42,7 @@ File system analysis revealed the malicious execution began with a trojanized Wi
     style="max-width: 100%; height: auto; display: block; margin: 2em auto; border-radius: 8px; border: 1px solid #444;" 
 />
 
-The [Joe Sandbox analysis](https://www.joesandbox.com/analysis/1783678/0/html) confirmed this: the infection chain was initiated by `msiexec.exe` executing this installer, which immediately launched a chain of processes culminating in the deployment of the RMM agents. This confirms the initial access vector was a phishing-delivered, trojanized MSI.
+The [Joe Sandbox analysis](https://www.joesandbox.com/analysis/1783678/0/html) confirmed this. The infection chain was initiated by `msiexec.exe` executing this installer, which immediately launched a chain of processes culminating in the deployment of the RMM agents. The initial access vector was a phishing derived, trojanized and awaiting execution by a local administrator to escalate its privileges.
 
 ### Living Off the Land (LOTL) Deployment
 
@@ -57,11 +52,11 @@ Upon execution, the attacker didn't rely on a single, custom piece of malware. I
 *   Atera
 *   Two ScreenConnect instances
 
-This approach provides resilient, persistent, and trusted remote access, allowing the attacker to disguise malicious Command and Control (C2) traffic as normal IT maintenance activity.
+This approach provides resilient, persistent, and trusted remote access, allowing the attacker to disguise malicious Command and Control (C2) traffic as normal activity.
 
 ## Persistence and Evasion Mechanisms (T1543.003, T1497)
 
-The sandbox analysis provided crucial technical detail on how the attacker ensures persistence and evades detection using the Syncro installer.
+The sandbox analysis provided technical details on how the attacker ensures persistence and evades detection using the Syncro installer.
 
 | Technical Mechanism             | MITRE ATT&CK                                 | Joe Sandbox Analysis Details                                                                                                                                                                                                                                                                                              |
 | :------------------------------ | :------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -71,7 +66,7 @@ The sandbox analysis provided crucial technical detail on how the attacker ensur
 
 ## The LSA Persistence Mechanism
 
-The `ScreenConnect.WindowsAuthenticationPackage.dll` that I initially flagged in the Event Viewer was the attacker's preferred persistence mechanism. The file path confirmed the DLL belonged to the ScreenConnect client installation. Analyzing the file types confirmed a critical detail: while the bulk of the client was written in managed .NET code, the authentication and credential files were marked as "unmanaged assembly, limited support." This meant they were native binaries, necessary to communicate with the low-level Windows security APIs.
+The `ScreenConnect.WindowsAuthenticationPackage.dll` that I initially flagged in the Event Viewer was still on my mind. Analyzing the file types brought up another anomonly, while the bulk of the client was written in managed .NET code, the `authentication` and `credential` files were marked as "unmanaged assembly, limited support." This meant they were the low-level binaries, necessary to communicate with the Windows security APIs.
 
 <img 
     src="/screenconnect_code.png" 
@@ -79,9 +74,9 @@ The `ScreenConnect.WindowsAuthenticationPackage.dll` that I initially flagged in
     style="max-width: 100%; height: auto; display: block; margin: 2em auto; border-radius: 8px; border: 1px solid #444;" 
 />
 
-### Speaking the Language of Native Code
 
-To understand the DLL's true function, I loaded the unmanaged DLLs into **Ghidra**, a disassembler and decompiler, to analyze their imported functions. This process turned from a suspicious activity to a confirmed malicious event.
+So I loaded the unmanaged DLLs into **Ghidra**, to analyze their imported functions. What happens next is pure speculation and I dont have enough background to accurately deduce this far so HIRE ME! DEVELOP ME! I LOVE THIS STUFF!
+> This message was brought to you by Mike, he is not beneath begging lulz.
 
 <img 
     src="/assembly.png" 
@@ -91,7 +86,7 @@ To understand the DLL's true function, I loaded the unmanaged DLLs into **Ghidra
 
 ## Stage 1: Credential Harvesting and Identity Manipulation (T1003.003)
 
-The disassembled code immediately flagged the attacker's primary objective: credential theft. The `ScreenConnect.WindowsAuthenticationPackage.dll` contained direct calls to the following critical, high-privilege APIs:
+The `ScreenConnect.WindowsAuthenticationPackage.dll` contained direct calls to the following critical, high-privilege APIs:
 
 | API Function (Module)              | Technical Purpose                                                                     | Forensic Conclusion                                                                                                |
 | :--------------------------------- | :------------------------------------------------------------------------------------ | :----------------------------------------------------------------------------------------------------------------- |
@@ -99,24 +94,30 @@ The disassembled code immediately flagged the attacker's primary objective: cred
 | `AllocateLocallyUniqueId` (ADVAPI32.DLL) | Creates a unique ID for a process or user.                                            | Identity & Token Manipulation. Necessary for an attacker to establish a new, possibly temporary, security context. |
 | `CreateWellKnownSid` (ADVAPI32.DLL)    | Creates a Security Identifier (SID) for a predefined system group (e.g., Administrators). | Privilege Enumeration/Escalation. Used to check for or construct privileged identity tokens.                          |
 
-The combined use of these functions suggests that the DLL was designed not merely to log a user on remotely, but to steal the credentials/token from that session and manipulate the user's security context.
+I formed a working hypothesis that the attacker was leveraging the ScreenConnect LSA component to achieve high-privilege persistence or "LSA Authentication Package Abuse". While I couldn't prove code injection directly from the assembly code, I gathered strong indirect evidence of the unauthorized installation and configuration change by querying Microsoft Defender Advanced Hunting (KQL).
 
 ## Lateral Movement Reconnaissance
 
 ## Stage 2: Data Exfiltration and Lateral Movement Reconnaissance (T1537)
 
-Further analysis of the executable’s imports revealed a shocking second stage: data exfiltration for lateral movement.
+Using Microsoft Purview I began a deep KQL investigation. The log completes the picture entire, and I start to get a glimpse of what the attackers action on objective is. I table this moment for the business impact analysis part of the report. 
 
-The code contained calls to APIs designed to interact with Microsoft Outlook's components and the Messaging Application Programming Interface (MAPI). Specifically, the attacker was targeting systemic APIs that suggest the enumeration and scraping of user data:
+The log shows 3 different IPs of three cloud providers all querying using APIs designed to interact with Microsoft Outlook's components and the Messaging Application Programming Interface (MAPI). These scripts were fetching a verying request between 9-13 in a single log (jitter?). I piece together a timeline showing the attacker logging in successfully and scraping the victim's Outlook contacts, inbox and drafts among other folders.
 
-*   The focus was on the most valuable internal data for a subsequent campaign: the user's Inbox, Drafts, and Contacts Lists.
-*   This action is entirely unrelated to remote administration and is definitive proof of data theft (**MITRE ATT&CK: T1537 - Outlook Manipulation**). By successfully extracting the internal contact list, the attacker was preparing a highly effective spear-phishing campaign to spread the infection laterally to the victim's clients or partners, confirming a major risk of supply chain compromise.
+This action appears to be entirely unrelated to the preceding activity, which raises a critical question regarding the initial compromise: How did the attacker obtain the victim's password? The possibilities must be investigated:
 
-This dual functionality—stealing credentials at the system level and harvesting contacts at the application level—proved this was not a simple RMM deployment, but a meticulously crafted, multi-stage credential harvester.
+- Was the password exposed via keylogging?
+
+- Did the identified assembly code inject malicious instructions to capture credentials?
+
+I now believe I have clear evidence of data exfiltration (MITRE ATT&CK: T1537 - Outlook Manipulation). My updated theory is that by successfully extracting the internal contact list, the attacker was preparing a highly effective spear-phishing campaign. This campaign's objective would be to spread the infection laterally to the victim's clients or partners, effectively executing a supply chain compromise.
+
+This dual functionality—stealing credentials at the system level and harvesting contacts at the application level proved this was not a simple RMM deployment, but a meticulously crafted, multi-stage credential harvester.
 
 ## Putting the Attacker to Rest
 
-The incident highlights the danger of trusted third-party tools. Our response focused on eradicating the threat and neutralizing the techniques used.
+The incident highlights the danger of supply-chain attacks, we think of this attacks through a lens of SolarWinds and MOVEit but they can be legitimate tools like RMM's or signed drivers. 
+The response focused on eradicating the threat and neutralizing the techniques used.
 
 | Category                | Remediation Steps Taken                                                                                                                                                                                                  |
 | :---------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
