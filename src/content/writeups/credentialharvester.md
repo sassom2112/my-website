@@ -21,7 +21,7 @@ heroImage: "/images/credential_harvester_hero.webp"
 
 ## A Curious Anomaly
 
-My process began with a curious, repetitive anomaly that I found on a security log, **Windows Event ID 4610**, an authentication package has been loaded by the Local Security Authority. This event was a level `informational` not even an alert, I almost ignored it. There was something off about the log, it had a ScreenConnect DLL file loaded into a privileged area but most of all none of our tools used ScreenConnect. The DLL being loaded was **ScreenConnect.WindowsAuthenticationPackage.dll**, and I had no idea why.
+My process began with a curious, repetitive anomaly that I found on a security log, **Windows Event ID 4610**, an authentication package has been loaded by the Local Security Authority. This event was a level `informational` not even an alert, I almost ignored it. There was something off about the log, it was a ScreenConnect DLL file being loaded into a privileged area but more importantly, we dont use ScreenConnect. The DLL being loaded was **ScreenConnect.WindowsAuthenticationPackage.dll**, and I had no idea why.
 
 <img 
     src="/screenconnectdll.png" 
