@@ -130,9 +130,9 @@ This dual functionality—stealing credentials at the system level and harvestin
 
 The incident highlights the evolution of the supply chain attack, which extends far beyond the zero-day or unpatched vulnerability model. While the supply chain attack target the software's build pipeline, modern attacks increasingly leverage legitimate, trusted tools like RMM applications. They achieve this by weaponizing the tool's intended function or abusing its dependencies through advanced techniques such as: LSA Authentication Package Abuse, DLL search order hijacking, or code injection into a legitimate, signed binary. 
 
-> #### I was able to establish an Attack Vector and accurately define the multi-stage attack and the root cause which was a `local admin policy` violation. 
-> #### I translated complex technical findings (Trojan. Dropper, data scraping) into clear business impact, demonstrating what was lost in a short time—to secure executive buy-in. 
-> #### I Led the creation and delivery of a lessons learned tabletop exercise to directly address the policy gap (standard user only), permanently strengthening the client's security posture against similar future threats.
+> #### I defined the multi-stage attack and attack vector through root-cause analysis, tracing its origin to a `local admin policy` violation.
+> #### I translated complex technical findings (Trojan, Dropper, data scraping) into clear `business impact`, demonstrating what was lost in a short time to secure future `stakeholder buy-in`. 
+> #### I Led the creation and delivery of a `lessons learned` tabletop exercise to directly address the `policy gap` (standard user only), permanently strengthening the client's `security posture` against similar future threats.
 
 ## References
 
